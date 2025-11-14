@@ -12,6 +12,11 @@ app = FastAPI(
 
 @app.get("/documents")
 async def get_user_documents(request: Request):
+    res = []
     user_id = request.headers.get("X-User-ID")
-    docs = mongo_database.find_user_docs("docs", user_id)
-    return docs
+    for doc in fake_documents_db:
+        if doc["created_by"] == user_id:
+            res.append(doc)
+    return res
+
+
