@@ -1,11 +1,10 @@
-import hashlib
 import json
 from json import JSONDecodeError
 from typing import Optional
 
 import redis.asyncio as aioredis
 
-REDIS_URL = "redis://:secret@localhost:6379/0"
+REDIS_URL = "redis://localhost:6379/0"
 class CacheManager:
     """Клиент для работы с Redis."""
 
@@ -19,15 +18,6 @@ class CacheManager:
         """Отключение от Redis."""
         if self.client:
             await self.client.close()
-
-    def _make_key(self, user_id: str, method: str, path: str, query_params: dict) -> str:
-        """Формирует ключ кеша."""
-        # Сортируем query-параметры для стабильности
-        sorted_params = sorted(query_params.items())
-        query_str = "&".join(f"{k}={v}" for k, v in sorted_params)
-        query_hash = hashlib.sha256(query_str.encode()).hexdigest()[:16]
-
-        return f"cache:{settings.APP_ENV}:{user_id}:{method}:{path}:{query_hash}"
 
     async def get(self, key: str) -> Optional[dict]:
         """Получает значение из кеша."""
@@ -53,7 +43,7 @@ class CacheManager:
                 return None
         return None
 
-    async def get_shared_documents(self,key = "shared:documents") -> Optional[dict]:
+    async def get_shared_documents(self) -> Optional[dict]:
         """Получает значение из кеша."""
         if self.client:
             try:
@@ -66,7 +56,7 @@ class CacheManager:
         return None
 
 
-    async def get_courent_document(self, user_id: str, doc_id: str) -> Optional[dict]:
+    async def get_current_document(self, user_id: str, doc_id: str) -> Optional[dict]:
         """Получает значение из кеша."""
         if self.client:
             try:
@@ -78,10 +68,24 @@ class CacheManager:
                 return None
         return None
 
-    async def set(self, key: str, value: dict, ttl: int):
+
+    async def set_user_documents(self, user_id: str, value: dict):
         """Сохраняет значение в кеш с TTL."""
         if self.client:
-            await self.client.set(key, json.dumps(value), ex=ttl)
+            key = f"user:{user_id}:documents"
+            await self.client.set(key, json.dumps(value), ex=300)
+
+    async def set_shared_documents(self, value: dict):
+        """Сохраняет значение в кеш с TTL."""
+        if self.client:
+            key = "shared:documents"
+            await self.client.set(key, json.dumps(value), ex=120)
+
+    async def set_current_documents(self, value: dict, user_id: str, doc_id: str):
+        """Сохраняет значение в кеш с TTL."""
+        if self.client:
+            key = f"user:{user_id}:document:{doc_id}"
+            await self.client.set(key, json.dumps(value), ex=120)
 
 
 cache = CacheManager()
