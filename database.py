@@ -25,11 +25,10 @@ class Database:
             self.client.close()
 
     async def create_doc(self, collection: str, document: dict):
-        if self.client:
-            await self.db[collection].insert_one(document)
+        created = await self.db[collection].insert_one(document)
+        return created
 
     async def find_doc(self, collection: str, doc_id: str):
-        if self.client:
-            res = await self.db[collection].find_one({"_id": ObjectId(doc_id)})
-
+        found = await self.db[collection].find_one({"_id": ObjectId(doc_id)})
+        return found
 mongo_database = Database()
