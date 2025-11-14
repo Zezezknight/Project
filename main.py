@@ -1,9 +1,7 @@
 from __future__ import annotations
+from fastapi import FastAPI, Request
+from database import fake_documents_db
 
-from fastapi import FastAPI
-
-from database import mongo_database
-from cache_manager import cache
 
 app = FastAPI(
     title="Shared Documents API",
@@ -12,14 +10,8 @@ app = FastAPI(
     docs_url="/docs",
 )
 
-
-@app.on_event("startup")
-async def on_startup() -> None:
-    await cache.connect()
-    await mongo_database.connect_mongo()
-
-
-@app.on_event("shutdown")
-async def on_shutdown() -> None:
-    await cache.disconnect()
-    await mongo_database.close_mongo()
+@app.get("/documents")
+async def get_user_documents(request: Request):
+    user_id = request.headers.get("X-User-ID")
+    docs = mongo_database.find_user_docs("docs", user_id)
+    return docs

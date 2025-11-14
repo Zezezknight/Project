@@ -5,7 +5,7 @@ from typing import Optional
 
 import redis.asyncio as aioredis
 
-REDIS_URL = "redis://localhost:6379/0"
+REDIS_URL = "redis://:secret@localhost:6379/0"
 class CacheManager:
     """Клиент для работы с Redis."""
 

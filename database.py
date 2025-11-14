@@ -1,34 +1,5 @@
-from typing import Optional
-
-from bson import ObjectId
-from dotenv import load_dotenv
-import os
-from motor.motor_asyncio import AsyncIOMotorClient
-
-load_dotenv()
-
-class Database:
-    client: Optional[AsyncIOMotorClient] = None
-    db: Optional = None
-
-    MONGO_DSN = os.getenv("MONGO_DSN")
-    MONGO_DB = os.getenv("MONGO_DB")
-    async def connect_mongo(self):
-        """Создаёт Mongo client и индексы (если их ещё нет)."""
-        print("MONGO_DSN", self.MONGO_DSN)
-        self.client = AsyncIOMotorClient(self.MONGO_DSN)
-        self.db = self.client[self.MONGO_DB]
-
-
-    async def close_mongo(self) -> None:
-        if self.client:
-            self.client.close()
-
-    async def create_doc(self, collection: str, document: dict):
-        created = await self.db[collection].insert_one(document)
-        return created
-
-    async def find_doc(self, collection: str, doc_id: str):
-        found = await self.db[collection].find_one({"_id": ObjectId(doc_id)})
-        return found
-mongo_database = Database()
+fake_documents_db = {
+    1: {"id": 1, "title": "Project Report", "content": "Project details...", "category": "reports", "is_public": False, "created_by": 1, "created_at": "2025-06-01T10:00:00", "last_modified": "2025-06-01T11:00:00"},
+    2: {"id": 2, "title": "Team Guidelines", "content": "Guidelines for team...", "category": "guidelines", "is_public": True, "created_by": 2, "created_at": "2025-06-01T09:00:00", "last_modified": "2025-06-01T10:00:00"},
+    3: {"id": 3, "title": "Urgent Update", "content": "Important update...", "category": "urgent", "is_public": False, "created_by": 1, "created_at": "2025-06-01T12:00:00", "last_modified": "2025-06-01T12:00:00"}
+}
